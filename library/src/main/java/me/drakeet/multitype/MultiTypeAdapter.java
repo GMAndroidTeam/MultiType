@@ -23,6 +23,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import java.util.Collections;
 import java.util.List;
@@ -35,7 +36,7 @@ public class MultiTypeAdapter extends RecyclerView.Adapter<ViewHolder> {
 
     private static final String TAG = "MultiTypeAdapter";
 
-    private @NonNull List<?> items;
+    public @NonNull List<Object> items;
     private @NonNull TypePool typePool;
     protected @Nullable LayoutInflater inflater;
 
@@ -53,7 +54,7 @@ public class MultiTypeAdapter extends RecyclerView.Adapter<ViewHolder> {
      *
      * @param items the items list
      */
-    public MultiTypeAdapter(@NonNull List<?> items) {
+    public MultiTypeAdapter(@NonNull List<Object> items) {
         this(items, new MultiTypePool());
     }
 
@@ -64,7 +65,7 @@ public class MultiTypeAdapter extends RecyclerView.Adapter<ViewHolder> {
      * @param items the items list
      * @param initialCapacity the initial capacity of TypePool
      */
-    public MultiTypeAdapter(@NonNull List<?> items, int initialCapacity) {
+    public MultiTypeAdapter(@NonNull List<Object> items, int initialCapacity) {
         this(items, new MultiTypePool(initialCapacity));
     }
 
@@ -75,7 +76,7 @@ public class MultiTypeAdapter extends RecyclerView.Adapter<ViewHolder> {
      * @param items the items list
      * @param pool the type pool
      */
-    public MultiTypeAdapter(@NonNull List<?> items, @NonNull TypePool pool) {
+    public MultiTypeAdapter(@NonNull List<Object> items, @NonNull TypePool pool) {
         this.items = items;
         this.typePool = pool;
     }
@@ -159,10 +160,9 @@ public class MultiTypeAdapter extends RecyclerView.Adapter<ViewHolder> {
      * @param items the new items list
      * @since v2.4.1
      */
-    public void setItems(@NonNull List<?> items) {
+    public void setItems(@NonNull List<Object> items) {
         this.items = items;
     }
-
 
     @NonNull
     public List<?> getItems() {
@@ -187,21 +187,28 @@ public class MultiTypeAdapter extends RecyclerView.Adapter<ViewHolder> {
 
 
     @Override
-    public final int getItemViewType(int position) {
+    public int getItemViewType(int position) {
         Object item = items.get(position);
         return indexInTypesOf(item);
     }
 
 
     @Override
-    public final ViewHolder onCreateViewHolder(ViewGroup parent, int indexViewType) {
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int indexViewType) {
         if (inflater == null) {
             inflater = LayoutInflater.from(parent.getContext());
         }
-        ItemViewBinder<?, ?> binder = typePool.getItemViewBinders().get(indexViewType);
+        final ItemViewBinder<?, ?> binder = typePool.getItemViewBinders().get(indexViewType);
         binder.adapter = this;
         assert inflater != null;
-        return binder.onCreateViewHolder(inflater, parent);
+        final ViewHolder viewHolder = binder.onCreateViewHolder(inflater, parent);
+        viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                binder.onItemClick(v, viewHolder.getLayoutPosition());
+            }
+        });
+        return viewHolder;
     }
 
 
@@ -220,14 +227,14 @@ public class MultiTypeAdapter extends RecyclerView.Adapter<ViewHolder> {
      * instead.
      */
     @Override @Deprecated
-    public final void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(ViewHolder holder, int position) {
         throw new IllegalAccessError("You should not call this method. " +
             "Call RecyclerView.Adapter#onBindViewHolder(holder, position, payloads) instead.");
     }
 
 
     @Override @SuppressWarnings("unchecked")
-    public final void onBindViewHolder(ViewHolder holder, int position, List<Object> payloads) {
+    public void onBindViewHolder(ViewHolder holder, int position, List<Object> payloads) {
         Object item = items.get(position);
         ItemViewBinder binder = typePool.getItemViewBinders().get(holder.getItemViewType());
         binder.onBindViewHolder(holder, item, payloads);
@@ -235,7 +242,7 @@ public class MultiTypeAdapter extends RecyclerView.Adapter<ViewHolder> {
 
 
     @Override
-    public final int getItemCount() {
+    public int getItemCount() {
         return items.size();
     }
 
