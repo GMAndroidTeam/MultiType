@@ -19,7 +19,6 @@ package me.drakeet.multitype;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 import java.util.List;
 
@@ -50,13 +49,6 @@ public abstract class ItemViewBinder<T, VH extends ViewHolder> {
      * @param item The item within the MultiTypeAdapter's items data set.
      */
     protected abstract void onBindViewHolder(@NonNull VH holder, @NonNull T item);
-
-    /**
-     * Called when click item root view
-     * @param view the item root view
-     * @param position the position of clicked view
-     */
-    protected abstract void onItemClick (View view, int position);
 
 
     /**
